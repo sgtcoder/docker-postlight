@@ -70,17 +70,17 @@ app.post("/", async (req, res) => {
       });
 
       // Parse Content
-      const content = new Readability(dom.window.document).parse().content;
+      const parsed = new Readability(dom.window.document).parse();
 
       console.log("Readability Parsed: " + url + " successfully");
 
       return {
+        parsed: parsed,
         original_content: response.data,
-        parsed_content: content,
       };
     })
     .then((result) => {
-      const readability_content = result.parsed_content;
+      const readability_content = result.parsed;
 
       Parser.parse(url, { html: result.original_content }).then((result) => {
         console.log("Postlight Parsed: " + url + " successfully");
