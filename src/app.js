@@ -109,7 +109,7 @@ app.post("/", async (req, res) => {
 });
 
 // Start server and dump current server version
-const version = fs.readFileSync("./VERSION").toString();
+const version = fs.readFileSync("./VERSION").toString().split("-")[1];
 
 app.listen(port, () =>
   console.log(`Postlight server v${version} listening on port ${port}!`),
