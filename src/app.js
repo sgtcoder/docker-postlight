@@ -1,33 +1,55 @@
 // General
 import * as fs from "fs";
+import morgan from "morgan";
 
 // Parsers
-import Parser from "@postlight/parser";
-import { Readability } from "@mozilla/readability";
+import Mercury from "mercury-parser";
+const Parser = Mercury;
 
 // Express
 import express from "express";
 import bodyParser from "body-parser";
 
-// Axios
-import axios from "axios";
+// JSDOM/DOMPurify
 import { JSDOM } from "jsdom";
+import DOMPurify from "dompurify";
 
-import morgan from "morgan";
+// Constants
+const window = new JSDOM("").window;
+const purify = DOMPurify(window);
 
 // Express
 const app = express();
 app.use(bodyParser.json({ limit: "20mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Custom Date Format
-morgan.format("custom_date", function () {
+// Attributes to Whitelist
+const WHITELISTED_ATTR = [];
+
+// Tags to Whitelist
+const WHITELISTED_TAGS = ["iframe", "video"];
+
+const domPurifyOptions = {
+  ADD_ATTR: WHITELISTED_ATTR,
+  ADD_TAGS: WHITELISTED_TAGS,
+};
+
+function get_date() {
   var newdate = new Date()
     .toISOString()
     .replace(/T/, " ") // replace T with a space
     .replace(/\..+/, "");
 
   return newdate;
+}
+
+function log_console(string) {
+  console.log("[" + get_date() + "]: " + string);
+}
+
+// Custom Date Format
+morgan.format("custom_date", function () {
+  return get_date();
 });
 
 // Logging
@@ -58,46 +80,26 @@ app.post("/", async (req, res) => {
       .end();
   }
 
-  console.log("Fetching " + url + "...");
+  log_console("Fetching: " + url + "...");
 
-  axios
-    .get(url)
-    .then((response) => {
-      console.log("Fetched " + url + " successfully");
-
-      const dom = new JSDOM(response.data, {
-        url: url,
-      });
-
-      // Parse Content
-      const parsed = new Readability(dom.window.document).parse();
-
-      console.log("Readability Parsed: " + url + " successfully");
-
-      return {
-        parsed: parsed,
-        original_content: response.data,
-      };
-    })
+  Parser.parse(url)
     .then((result) => {
-      const readability_content = result.parsed;
+      log_console("Parsed: " + url + " successfully");
 
-      Parser.parse(url, { html: result.original_content }).then((result) => {
-        console.log("Postlight Parsed: " + url + " successfully");
+      const parsed = result;
+      parsed.content = purify.sanitize(parsed.content, domPurifyOptions);
 
-        const parsed = result;
-
-        return res
-          .status(200)
-          .send({
-            url,
-            ...parsed,
-            readability_content,
-          })
-          .end();
-      });
+      return res
+        .status(200)
+        .send({
+          url,
+          ...parsed,
+        })
+        .end();
     })
     .catch((error) => {
+      log_console(error);
+
       return res
         .status(500)
         .send({
@@ -112,5 +114,5 @@ app.post("/", async (req, res) => {
 const version = fs.readFileSync("./VERSION").toString().split("-")[1];
 
 app.listen(port, () =>
-  console.log(`Postlight server v${version} listening on port ${port}!`),
+  log_console(`Postlight server v${version} listening on port ${port}!`),
 );
