@@ -1,7 +1,7 @@
 {
-  "name": "postlight-server",
+  "name": "article-parser-server",
   "type": "module",
-  "description": "Postlight as a service",
+  "description": "Article Parser Server",
   "author": "sgtcoder",
   "homepage": "https://github.com/sgtcoder/docker-postlight",
   "license": "Apache-2.0",
@@ -11,7 +11,7 @@
     "express": "^4.18.2",
     "jsdom": "^24.0.0",
     "mercury-parser": "shinyfrog/mercury-parser",
-    "morgan": "^1.1.0"
+    "morgan": "^1.10.0"
   },
   "scripts": {
     "dev": "nodemon src/app.js"

@@ -114,5 +114,5 @@ app.post("/", async (req, res) => {
 const version = fs.readFileSync("./VERSION").toString().split("-")[1];
 
 app.listen(port, () =>
-  log_console(`Postlight server v${version} listening on port ${port}!`),
+  log_console(`Article Parser Server v${version} listening on port ${port}!`),
 );
