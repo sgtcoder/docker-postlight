@@ -3,8 +3,7 @@ import * as fs from "fs";
 import morgan from "morgan";
 
 // Parsers
-import Mercury from "mercury-parser";
-const Parser = Mercury;
+import Parser from "@postlight/parser";
 
 // Express
 import express from "express";
