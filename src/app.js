@@ -20,6 +20,7 @@ import { JSDOM } from "jsdom";
 import DOMPurify from "dompurify";
 
 import hbs from "hbs";
+import "dotenv/config";
 
 hbs.registerPartials(path.join(__dirname, "views"));
 hbs.registerHelper("encodeMyString", function (inputData) {
@@ -113,6 +114,26 @@ app.get("/", (req, res) => {
 
 app.post("/", async (req, res) => {
   const url = req.body.url;
+
+  if (!req.headers.authorization) {
+    return res
+      .status(403)
+      .send({
+        error: "Unauthorized",
+      })
+      .end();
+  }
+
+  const token = req.headers.authorization.split(" ")[1];
+
+  if (token != process.env.POSTLIGHT_TOKEN) {
+    return res
+      .status(403)
+      .send({
+        error: "Unauthorized",
+      })
+      .end();
+  }
 
   // Check if URL is set
   if (url === undefined || url === "") {
