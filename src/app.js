@@ -116,12 +116,17 @@ app.post("/", async (req, res) => {
 
   // Check if URL is set
   if (url === undefined || url === "") {
-    return res
-      .status(400)
-      .send({
-        error: 'Send JSON, like so: {"url": "https://url/to/whatever"}',
-      })
-      .end();
+    return res.render(__dirname + "/views/article-message", {
+      title: "Health Check",
+      content: "Article Service Running",
+    });
+
+    // return res
+    //   .status(400)
+    //   .send({
+    //     error: 'Send JSON, like so: {"url": "https://url/to/whatever"}',
+    //   })
+    //   .end();
   }
 
   log_console("Fetching: " + url + "...");
@@ -130,11 +135,29 @@ app.post("/", async (req, res) => {
     .then((result) => {
       log_console("Parsed: " + url + " successfully");
 
+      if (result == null) {
+        return res.render(__dirname + "/views/article-message", {
+          title: "Error Message",
+          content: "Server Error",
+        });
+      }
+
       const parsed = result;
       parsed.content = purify.sanitize(parsed.content, domPurifyOptions);
-      parsed.formattedPublishedTime = moment(parsed.date_published).format(
-        "MMMM Do, YYYY",
-      );
+      parsed.formattedPublishedTime = null;
+
+      if (parsed.content.length == 0) {
+        return res.render(__dirname + "/views/article-message", {
+          title: "Parse Error",
+          content: "Could not parse article",
+        });
+      }
+
+      if (moment(parsed.date_published).isValid()) {
+        parsed.formattedPublishedTime = moment(parsed.date_published).format(
+          "MMMM Do, YYYY",
+        );
+      }
 
       var length = parsed.word_count;
 

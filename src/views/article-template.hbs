@@ -342,7 +342,7 @@
 
 <span id="published-time">{{formattedPublishedTime}}</span>
 
-{{#ifCond formattedPublishedTime '!=' ''}}
+{{#ifCond formattedPublishedTime '!=' null}}
     {{#ifCond word_count '>' 100}}
         <span> | </span>
     {{/ifCond}}
@@ -353,7 +353,6 @@
         {{readingTime}} min read
     {{/ifCond}}
 </span>
-
 
 <hr />
 
