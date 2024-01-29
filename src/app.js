@@ -146,7 +146,7 @@ app.post("/", async (req, res) => {
 
       parsed.readingTime = reading_fast + "-" + reading_slow;
 
-      return res.render(__dirname + "/../views/article-template", parsed);
+      return res.render(__dirname + "/views/article-template", parsed);
     })
     .catch((error) => {
       log_console(error);
