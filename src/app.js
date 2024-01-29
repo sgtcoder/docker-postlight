@@ -1,9 +1,15 @@
 // General
 import * as fs from "fs";
 import morgan from "morgan";
+import path from "path";
+import moment from "moment";
 
 // Parsers
 import Parser from "@postlight/parser";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Express
 import express from "express";
@@ -13,14 +19,53 @@ import bodyParser from "body-parser";
 import { JSDOM } from "jsdom";
 import DOMPurify from "dompurify";
 
+import hbs from "hbs";
+
+hbs.registerPartials(path.join(__dirname, "views"));
+hbs.registerHelper("encodeMyString", function (inputData) {
+  return new hbs.SafeString(inputData);
+});
+
+hbs.registerHelper("ifCond", function (v1, operator, v2, options) {
+  switch (operator) {
+    case "==":
+      return v1 == v2 ? options.fn(this) : options.inverse(this);
+    case "===":
+      return v1 === v2 ? options.fn(this) : options.inverse(this);
+    case "!=":
+      return v1 != v2 ? options.fn(this) : options.inverse(this);
+    case "!==":
+      return v1 !== v2 ? options.fn(this) : options.inverse(this);
+    case "<":
+      return v1 < v2 ? options.fn(this) : options.inverse(this);
+    case "<=":
+      return v1 <= v2 ? options.fn(this) : options.inverse(this);
+    case ">":
+      return v1 > v2 ? options.fn(this) : options.inverse(this);
+    case ">=":
+      return v1 >= v2 ? options.fn(this) : options.inverse(this);
+    case "&&":
+      return v1 && v2 ? options.fn(this) : options.inverse(this);
+    case "||":
+      return v1 || v2 ? options.fn(this) : options.inverse(this);
+    default:
+      return options.inverse(this);
+  }
+});
+
 // Constants
 const window = new JSDOM("").window;
 const purify = DOMPurify(window);
+const version = fs
+  .readFileSync(__dirname + "/../VERSION")
+  .toString()
+  .split("-")[1];
 
 // Express
 const app = express();
 app.use(bodyParser.json({ limit: "20mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
+app.set("view engine", "hbs");
 
 // Attributes to Whitelist
 const WHITELISTED_ATTR = [];
@@ -87,14 +132,21 @@ app.post("/", async (req, res) => {
 
       const parsed = result;
       parsed.content = purify.sanitize(parsed.content, domPurifyOptions);
+      parsed.formattedPublishedTime = moment(parsed.date_published).format(
+        "MMMM Do, YYYY",
+      );
 
-      return res
-        .status(200)
-        .send({
-          url,
-          ...parsed,
-        })
-        .end();
+      var length = parsed.word_count;
+
+      var words_per_minute_low = 100;
+      var words_per_minute_high = 260;
+
+      var reading_slow = Math.ceil(length / words_per_minute_low);
+      var reading_fast = Math.ceil(length / words_per_minute_high);
+
+      parsed.readingTime = reading_fast + "-" + reading_slow;
+
+      return res.render(__dirname + "/../views/article-template", parsed);
     })
     .catch((error) => {
       log_console(error);
@@ -110,8 +162,6 @@ app.post("/", async (req, res) => {
 });
 
 // Start server and dump current server version
-const version = fs.readFileSync("./VERSION").toString().split("-")[1];
-
 app.listen(port, () =>
   log_console(`Article Parser Server v${version} listening on port ${port}!`),
 );
