@@ -166,6 +166,7 @@ app.post("/", async (req, res) => {
       const parsed = result;
       parsed.content = purify.sanitize(parsed.content, domPurifyOptions);
       parsed.formattedPublishedTime = null;
+      parsed.readingTime = null;
 
       if (parsed.content.length == 0) {
         return res.render(__dirname + "/views/article-message", {
