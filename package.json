@@ -6,7 +6,7 @@
   "homepage": "https://github.com/sgtcoder/docker-postlight",
   "license": "Apache-2.0",
   "dependencies": {
-    "@postlight/parser": "^2.2.3",
+    "@postlight/parser": "sgtcoder/parser",
     "body-parser": "^1.20.2",
     "dompurify": "^3.0.8",
     "dotenv": "^16.4.1",
