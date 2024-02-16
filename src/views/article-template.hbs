@@ -360,6 +360,14 @@
 <div id="reader-content">
     {{encodeMyString content}}
 </div>
+
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function(event) {
+   document.querySelectorAll('img').forEach(function(img){
+  	img.onerror = function(){this.style.display='none';};
+   })
+});
+</script>
 </body>
 
 </html>
